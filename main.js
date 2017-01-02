@@ -18,9 +18,13 @@ const encode = (message, options) => {
         const bin = char.charCodeAt(0).toString(2)
         return bin
     })
-
-    const longBin = binary.join('')
+    const eightBitBin = binary.map((bits) => {
+        const eightBit = recPrepend(8, bits, '0')
+        return eightBit
+    })
+    const longBin = eightBitBin.join('')
     const blocks = longBin.match(/.{1,24}/g)
+    const padNum = padCount(blocks[blocks.length - 1], 24)
     const fillBlock = fill(blocks[blocks.length - 1], 24)
     blocks[blocks.length - 1] = fillBlock
     const longPaddedBin = blocks.join('')
@@ -32,29 +36,29 @@ const encode = (message, options) => {
     
     const numInGroup = (24 / options.size) >> 0
 
-    const encWoPad = recEncodeGrp(
+    const encoded = recEncodeGrp(
         grouped,
         numInGroup - 1,
+        padNum,
         0,
         options
     )
 
-    console.log(encWoPad)
+    return encoded
 }
 
-const recEncodeGrp = (grp, padGrp, index, opts) => {
+const recEncodeGrp = (grp, padGrp, padNum, index, opts) => {
     const padCutOff = grp.length - padGrp
     if (index < padCutOff) {
         grp[index] = encodeBits(grp[index], opts.encoding)
-        return recEncodeGrp(grp, padGrp, index + 1, opts)
+        return recEncodeGrp(grp, padGrp, padNum, index + 1, opts)
     } else if (index < grp.length){
-        const padBits = recAppend(opts.size, '', '0')
-        if (padBits === grp[index]) {
+        if (index >= (grp.length - padNum) && index < grp.length) {
             grp[index] = opts.pad
         } else {
             grp[index] = encodeBits(grp[index], opts.encoding)
         }
-        return recEncodeGrp(grp, padGrp, index + 1, opts)
+        return recEncodeGrp(grp, padGrp, padNum, index + 1, opts)
     } else {
         return grp.join('')
     }
@@ -79,8 +83,28 @@ const recAppend = (num, str, char) => {
     }
 }
 
-encode("Hello!! I'm a robot", {
+const recPrepend = (num, str, char) => {
+    if (str.length < num) {
+        const prepend = char + str
+        return recPrepend(num, prepend, char)
+    } else {
+        return str
+    }
+}
+
+const padCount = (bits, blockSize) => {
+    if (bits.length < blockSize) {
+        const count = blockSize / bits.length
+        const blockBitSize = blockSize / 8
+        const numOfPads = blockBitSize - Math.ceil(count)
+        return numOfPads
+    } else {
+        return 0
+    }
+}
+
+console.log(encode("Hello!! I'm a robot. Yahoo! wee poop.s", {
     pad: "=",
     encoding: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
     size: 6
-})
+}))
