@@ -47,6 +47,46 @@ const encode = (message, options) => {
     return encoded
 }
 
+const decode = (message, options) => {
+    const chars = message.split("")
+    const encDeci = chars.map((char) => {
+        if (char === options.pad) {
+            return char
+        } else {
+            return options.encoding.indexOf(char)
+        }
+    })
+    const binary = encDeci.map((deci) => {
+        if (deci === options.pad) {
+            return options.pad
+        } else {
+            const bin = (deci >>> 0).toString(2)
+            const completeBin = recPrepend(options.size, bin, '0')
+            return completeBin
+        }
+    })
+    const removePad = binary.filter((bin) => {
+        return bin !== options.pad
+    })
+    const longBinary = removePad.join('')
+    const decodedBinary = longBinary.match(/.{1,8}/g)
+    const fillDecodedBinary = decodedBinary.map((bin) => {
+        return recPrepend(8,bin,'0')
+    })
+    const removeNull = fillDecodedBinary.filter((bin) => {
+        return bin !== '00000000'
+    })
+    const decodedDeci = removeNull.map((bin) => {
+        return parseInt(bin, 2)
+    })
+    const decodedChar = decodedDeci.map((deci) => {
+        return String.fromCharCode(deci)
+    })
+    console.log(decodedChar)
+    const decoded = decodedChar.join('')
+    return decoded
+}
+
 const recEncodeGrp = (grp, padGrp, padNum, index, opts) => {
     const padCutOff = grp.length - padGrp
     if (index < padCutOff) {
@@ -103,8 +143,11 @@ const padCount = (bits, blockSize) => {
     }
 }
 
-console.log(encode("Hello!! I'm a robot. Yahoo! wee poop.s", {
+const o = {
     pad: "=",
     encoding: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
     size: 6
-}))
+}
+const e = encode("Hello!! I'm a robot. Yahoo! wee poop.s", o)
+console.log(e)
+console.log(decode(e, o))
