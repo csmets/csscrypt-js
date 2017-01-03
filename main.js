@@ -1,3 +1,28 @@
+/*
+JS Conversion of the python one I wrote
+
+Clyde's Simple Shuffler Encryption
+
+@Desc
+This encryption algorthym is design for users to use their own keys to build
+a unique encrypted output. It called shuffler as it uses the inputed key
+to shuffle each character in the message, thus making it harder to crack.
+
+I highly advise you to not use this for passwords. Paswords are secured by
+hashing and not through encryption. Hashed values can't be decrypted where as
+encryption can. Feel free to encrypt stuff for fun and use this as a learning
+tool.
+
+If you use this to encrypt something sensitive, use at your own discretion. I am
+not responsible for messages you've created that's gotten cracked.
+
+@author
+Clyde Smets <clyde.smets@gmail.com>
+
+@license
+MIT
+
+*/
 
 const fs = require('fs')
 
