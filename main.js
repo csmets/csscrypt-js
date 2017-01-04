@@ -26,12 +26,6 @@ MIT
 
 const fs = require('fs')
 
-const encrypt = (options) => {
-    
-    // Encode the message first
-    const encoded = encode(message, options)
-}
-
 const getKey = () => {
     const enc = fs.readSync('key/encoding.txt', 'utf8') 
     return enc
@@ -168,11 +162,33 @@ const padCount = (bits, blockSize) => {
     }
 }
 
+const resizeKey = (key, len) => {
+    
+}
+
+const encrypt = (message, options) => {
+    const encoded = encode(message, options)
+    const encodedChar = encoded.split('')
+
+    const getPadNum = () => {
+        const pads = encodedChar.filter((char) => {
+            return char === options.pad
+        })
+
+        return pads.length
+    }
+
+    const padNum = getPadNum()
+
+    encodedChar.splice(encodedChar.length - padNum, padNum)
+
+    console.log(encodedChar)
+}
+
 const o = {
     pad: "=",
     encoding: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
-    size: 6
+    size: 6,
+    key: '3924834902384'
 }
-const e = encode("Hello!! I'm a robot. Yahoo! wee poop.s", o)
-console.log(e)
-console.log(decode(e, o))
+const e = encrypt("Hello!! I'm a robot. Yahoo! wee poop.s", o)
