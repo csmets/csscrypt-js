@@ -101,7 +101,6 @@ const decode = (message, options) => {
     const decodedChar = decodedDeci.map((deci) => {
         return String.fromCharCode(deci)
     })
-    console.log(decodedChar)
     const decoded = decodedChar.join('')
     return decoded
 }
@@ -162,27 +161,105 @@ const padCount = (bits, blockSize) => {
     }
 }
 
+const makeLength = (str, len) => {
+    if (str.length < len) {
+        return makeLength(str + str, len)
+    } else {
+        return str.substring(0,len)
+    }
+}
+
 const resizeKey = (key, len) => {
-    
+    if (key.length > len) {
+        return key.substring(0, len)
+    } else {
+        return makeLength(key, len)
+    }
+}
+
+const shiftValue = (list, pos, num) => {
+    const shift = pos + num
+    if (shift < list.length) {
+        return list[shift]
+    } else {
+        const remainder = list.length - (pos + 1)
+        const wrappedShift = (num - remainder) - 1
+        return list[wrappedShift]
+    }
+}
+
+const getPadNum = (chars, pad) => {
+    const pads = chars.filter((char) => {
+        return char === pad
+    })
+
+    return pads.length
 }
 
 const encrypt = (message, options) => {
     const encoded = encode(message, options)
     const encodedChar = encoded.split('')
 
-    const getPadNum = () => {
-        const pads = encodedChar.filter((char) => {
-            return char === options.pad
-        })
 
-        return pads.length
-    }
-
-    const padNum = getPadNum()
+    const padNum = getPadNum(encodedChar, options.pad)
 
     encodedChar.splice(encodedChar.length - padNum, padNum)
 
-    console.log(encodedChar)
+    const key = resizeKey(options.key, encodedChar.length)
+
+    const encodingList = options.encoding.split('')
+
+    const shiftChars = (index, res) => {
+        if (res.length > key.length - 1) {
+            return res
+        } else {
+            const pos = options.encoding.indexOf(encodedChar[index])
+            const shifted = shiftValue(encodingList, pos, parseInt(key[index]))
+            return shiftChars(index + 1, res + shifted)
+        }
+    }
+    const encrypted = shiftChars(0, '')
+    
+    const missingPads = encoded.slice(-padNum)
+
+    return encrypted + missingPads
+}
+
+const unShiftValue = (list, pos, shift) => {
+    index = pos - shift
+    if (index < 0) {
+        // Negative number
+        return list.length - Math.abs(index)
+    } else {
+        return index
+    }
+}
+
+const decrypt = (crypted, options) => {
+
+    const cryptedChar = crypted.split('')
+    const padNum = getPadNum(cryptedChar, options.pad)
+    cryptedChar.splice(cryptedChar.length - padNum, padNum)
+
+    // Resize the key
+    const key = resizeKey(options.key, cryptedChar.length)
+    const unshift = (index, res) => {
+        if (res.length > key.length - 1) {
+            return res
+        } else {
+            const pos = options.encoding.indexOf(cryptedChar[index])
+            const unShiftIndex = unShiftValue(options.encoding, pos, 
+                parseInt(key[index]))
+            const unshifted = options.encoding[unShiftIndex]
+            return unshift(index + 1, res + unshifted)
+        }
+    }
+
+    const unshifted = unshift(0,'')
+    const missingPads = crypted.slice(-padNum)
+    const encoded = unshifted + missingPads
+    const decrypted = decode(encoded, options)
+    return decrypted
 }
 
 const o = {
@@ -192,3 +269,6 @@ const o = {
     key: '3924834902384'
 }
 const e = encrypt("Hello!! I'm a robot. Yahoo! wee poop.s", o)
+console.log(e)
+const d = decrypt(e, o)
+console.log(d)
