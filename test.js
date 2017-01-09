@@ -1,4 +1,4 @@
-const CSSCrypt = require ('./main.js')
+const CSSCrypt = require ('./csscrypt')
 
 const o = {
     pad: "=",

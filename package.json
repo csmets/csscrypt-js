@@ -1,8 +1,12 @@
 {
   "name": "csscrypt",
   "version": "1.0.0",
+  "repository": {
+    "url": "git+https://github.com/csmets/csscrypt-js.git",
+    "type": "git"
+  },
   "description": "Shuffler encryption used for encrypting documents.",
-  "main": "index.js",
+  "main": "csscrypt.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
