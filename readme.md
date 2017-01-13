@@ -1,4 +1,4 @@
-SSCrypt
+# CSSCrypt
 
 Clyde’s Simple Shuffler Encryption. Encryption which requires two keys to encrypt and decrypt. First key is used to encode the message. Second one, shifts each encrypted character according to each single digit in the key.
 
@@ -9,10 +9,10 @@ Note: This is a rewrite of a script I did in [Python](https://github.com/csmets/
 const CSSCrypt = require ('./csscrypt')
 
 const options = {
-    key: '3924834902384'
-    encoding: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
-    pad: "=",
-    size: 6,
+	key: '3924834902384'
+	encoding: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+	pad: "=",
+	size: 6,
 }
 
 const e = CSSCrypt.encrypt("Hello!! I'm a robot. Yahoo!", options)
