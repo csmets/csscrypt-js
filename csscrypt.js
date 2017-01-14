@@ -25,9 +25,28 @@ MIT
 
 */
 
+const defaultOptions = (options) => {
+    // Default options follow Base64 encryption
+    options.bitSize = options.bitSize || 6
+    options.pad = options.pad || '='
+    options.encoding = options.encoding
+    || "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    return options
+}
+
+const optionsKeyCheck = (options) => {  
+    if (options.key === undefined) {
+        throw "Key has not been entered"
+    }
+    return options
+}
+
 const encrypt = (message, options) => {
 
-    // First encode the message
+    // Check options object and setup any required default values
+    options = defaultOptions(optionsKeyCheck(options))
+
+    // Encode the message
     const encoded = encode(message, options)
     
     // Split the encoded message to manipulate individual values
@@ -110,15 +129,15 @@ const encode = (message, options) => {
         return bin
     })
 
-    // Make binary 8bit - sometimes a converted character spits only '0101' and
-    // not the full 8bits.
-    const eightBitBin = binary.map((bits) => {
-        const eightBit = recPrepend(8, bits, '0')
-        return eightBit
+    // Make binary 8bit (octet) - sometimes a converted character spits only 
+    // '0101' and not the full 8bits.
+    const makeOctet = binary.map((bits) => {
+        const octet = recPrepend(8, bits, '0')
+        return octet
     })
 
     // Join the binary to one long string
-    const longBin = eightBitBin.join('')
+    const longBin = makeOctet.join('')
 
     // Split the long binary string into block of 24 used in encoding
     const blocks = longBin.match(/.{1,24}/g)
@@ -134,14 +153,14 @@ const encode = (message, options) => {
     const longPaddedBin = blocks.join('')
 
     // Make new groups of bits using specified encoding size
-    const encGrpRegex = ".{1," + options.size + "}"
+    const encGrpRegex = ".{1," + options.bitSize + "}"
     const re = new RegExp(encGrpRegex, "g")
     const encGrps = longPaddedBin.match(re)
-    const fillGrp = fill(encGrps[encGrps.length - 1], options.size)
+    const fillGrp = fill(encGrps[encGrps.length - 1], options.bitSize)
     encGrps[encGrps.length - 1] = fillGrp
 
     // Find the number of groups that is required to make a block
-    const numInGroup = (24 / options.size) >> 0
+    const numInGroup = (24 / options.bitSize) >> 0
 
     // Assign an encoding character to the encoded bits of data
     const encoded = recEncodeGrp(
@@ -207,7 +226,7 @@ const decode = (message, options) => {
             return options.pad
         } else {
             const bin = (deci >>> 0).toString(2)
-            const completeBin = recPrepend(options.size, bin, '0')
+            const completeBin = recPrepend(options.bitSize, bin, '0')
             return completeBin
         }
     })
