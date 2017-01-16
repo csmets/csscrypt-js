@@ -18,7 +18,7 @@ const options = {
 const e = CSSCrypt.encrypt("Hello!! I'm a robot. Yahoo!", options)
 console.log(e)
 
-const d = CSSCrypt.decrypt(e, o)
+const d = CSSCrypt.decrypt(e, options)
 console.log(d)
 ```
 
