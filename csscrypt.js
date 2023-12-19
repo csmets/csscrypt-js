@@ -48,7 +48,7 @@ const encrypt = (message, options) => {
 
     // Encode the message
     const encoded = encode(message, options)
-    
+
     // Split the encoded message to manipulate individual values
     const encodedChar = encoded.split('')
 
@@ -75,12 +75,18 @@ const encrypt = (message, options) => {
     }
     const encrypted = shiftChars(0, '')
     
-    const missingPads = encoded.slice(-padNum)
-
-    return encrypted + missingPads
+    if (padNum > 0) {
+        const missingPads = encoded.slice(-padNum)
+        return encrypted + missingPads
+    } else {
+        return encrypted
+    }
 }
 
 const decrypt = (crypted, options) => {
+
+    // Check options object and setup any required default values
+    options = defaultOptions(optionsKeyCheck(options))
 
     const cryptedChar = crypted.split('')
 
@@ -107,15 +113,23 @@ const decrypt = (crypted, options) => {
     }
     const unshifted = unshift(0,'')
 
-    // Get ony the pad value from the encrypted message. (It's the only value
-    // that is non shifted.
-    const missingPads = crypted.slice(-padNum)
+    if (padNum > 0)
+    {
+        // Get ony the pad value from the encrypted message. (It's the only value
+        // that is non shifted.
+        const missingPads = crypted.slice(-padNum)
 
-    // Now we have the encoded message ready to be decoded.
-    const encoded = unshifted + missingPads
-    const decrypted = decode(encoded, options)
+        // Now we have the encoded message ready to be decoded.
+        const encoded = unshifted + missingPads
+        const decrypted = decode(encoded, options)
 
-    return decrypted
+        return decrypted
+    } else {
+        // Now we have the encoded message ready to be decoded.
+        const decrypted = decode(unshifted, options)
+
+        return decrypted
+    }
 }
 
 const encode = (message, options) => {
@@ -123,21 +137,22 @@ const encode = (message, options) => {
     // Split message to individual characters for map binary conversion
     const charList = message.split("")
 
+    const te = new TextEncoder('utf-8')
+    function toBinaryRepr(str) {
+        return Array.from(te.encode(str))
+            .map(i => i
+                .toString(2)
+                .padStart(8, '0'))
+            .join('')
+    }
+
     // Convert characters to binary
     const binary = charList.map((char) => {
-        const bin = char.charCodeAt(0).toString(2)
-        return bin
-    })
-
-    // Make binary 8bit (octet) - sometimes a converted character spits only 
-    // '0101' and not the full 8bits.
-    const makeOctet = binary.map((bits) => {
-        const octet = recPrepend(8, bits, '0')
-        return octet
+        return toBinaryRepr(char)
     })
 
     // Join the binary to one long string
-    const longBin = makeOctet.join('')
+    const longBin = binary.join('')
 
     // Split the long binary string into block of 24 used in encoding
     const blocks = longBin.match(/.{1,24}/g)
@@ -253,14 +268,12 @@ const decode = (message, options) => {
         return parseInt(bin, 2)
     })
 
-    // Convert the character decimal into a character which will result into
-    // the decoded message.
-    const decodedChar = decodedDeci.map((deci) => {
-        return String.fromCharCode(deci)
-    })
-    const decoded = decodedChar.join('')
+    const uint8Array = new Uint8Array(decodedDeci)
 
-    return decoded
+    const de = new TextDecoder('utf-8')
+    const result = de.decode(uint8Array)
+
+    return result
 }
 
 // Return a '000110' (6 bit) to a '00011000' (8bit) if size value is given 8
